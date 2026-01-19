@@ -1,0 +1,16 @@
+@startuml AlertsService_SystemContext
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Context.puml
+
+Person(user, "End User", "Mobile/web banking user")
+System(alerts, "Alert Service", "Consumes transfer events and exposes alerts API")
+
+System_Ext(rabbitmq, "RabbitMQ", "Message broker for alert events")
+System_Ext(postgres, "PostgreSQL", "Persistent alerts store (JSONB used for payloads)")
+System_Ext(auth, "Auth Provider", "Issues JWT tokens (demo/local or OIDC)")
+
+Rel(user, alerts, "GET /api/v1/alerts (JWT)")
+Rel(alerts, rabbitmq, "Consumes events from fund-transfer-imps")
+Rel(alerts, postgres, "Reads/writes alerts (idempotent insert)")
+Rel(user, auth, "Obtain JWT (login)")
+@enduml

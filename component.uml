@@ -1,0 +1,28 @@
+@startuml AlertsService_Component
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Component.puml
+
+Person(user, "End User")
+
+Container_Boundary(alertService, "Alert Service") {
+  Component(api, "HTTP API", "Spring", "GET /api/v1/alerts, /alerts/{alertId}, /health")
+  
+  Component(authm, "Auth Middleware", "JWT Verifier", "Validates token and extracts user_id")
+  
+  Component(consumer, "Event Consumer", "AMQP Client", "Consumes messages, validates, persists idempotently")
+  
+  Component(repo, "Alerts Repository", "DB Access Layer", "Upsert with ON CONFLICT DO NOTHING")
+}
+
+ContainerDb(postgres, "PostgreSQL", "Relational DB", "alerts table; event_id unique; JSONB payload")
+
+Container(rabbitmq, "RabbitMQ", "Message Broker", "inbound_alerts, notify-alerts")
+
+Rel(user, api, "HTTP GET /api/v1/alerts", "Bearer JWT")
+Rel(api, authm, "verifies token")
+Rel(api, repo, "query alerts")
+Rel(consumer, repo, "persist alert")
+Rel(repo, postgres, "INSERT ... ON CONFLICT DO NOTHING")
+Rel(consumer, rabbitmq, "consume & publish retry messages")
+
+@enduml

@@ -1,0 +1,59 @@
+server:
+    port: 9000
+
+spring:
+    application:
+        name: alert-service
+
+# Database configuration
+    datasource:
+        url: jdbc:postgresql://localhost:5433/alert_db
+        driver-class-name: org.postgresql.Driver
+        username: user
+        password: password
+
+    jpa:
+        open-in-view: false
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        properties:
+            hibernate:
+                format_sql: true
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Logging configuration
+logging:
+    level:
+        root: INFO
+        com.bank.alert_demo: INFO
+    pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file:
+        name: logs/alert-service.log
+
+# Actuator configuration
+management:
+    endpoints:
+        web:
+            exposure:
+                include: "*"
+    endpoint:
+        health:
+            show-details: always
+
+# RabbitMQ configuration
+
+
+rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+        simple:
+            # concurrency: 3
+            # max-concurrency: 10
+            # prefetch: 5
+            acknowledge-mode: manual
+            default-requeue-rejected: false

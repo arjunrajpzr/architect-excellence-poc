@@ -1,0 +1,29 @@
+@startuml AlertsService_Container
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Container.puml
+
+Person(user, "End User")
+
+System_Boundary(alerts, "Alert System") {
+  Container(alertService, "Alert Service", "Spring", "Consumes events, persists alerts, exposes HTTP API")
+  
+  ContainerDb(postgres, "PostgreSQL", "Relational DB", "alerts table; event_id unique; JSONB payload")
+  
+  Container(rabbitmq, "RabbitMQ", "Message Broker", "fund-transfer-imps, retry-fund-transfer, notification-events, validation-errors")
+  
+}
+
+System_Ext(notificationService, "Notification Service", "Service to provide SMS/Email alerts")
+System_Ext(inboundSystems, "Inbound Systems", "External systems that submits requests")
+
+Rel(user, alertService, "HTTP GET /api/v1/alerts", "Bearer JWT")
+Rel(alertService, postgres, "INSERT ... ON CONFLICT DO NOTHING", "SQL")
+Rel(rabbitmq, alertService, "consume inbound_events", "AMQP")
+Rel(alertService, rabbitmq, "publish notification events", "AMQP: notify-events queue")
+
+Rel(inboundSystems, rabbitmq, "consume notification events", "AMQP: inbound-events queue")
+
+Rel(rabbitmq, notificationService, "Send alerts", "AMQP: notify-alerts queue")
+
+
+@enduml
