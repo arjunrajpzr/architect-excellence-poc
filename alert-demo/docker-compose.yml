@@ -1,4 +1,21 @@
 services:
+  alert-demo:
+    image: alert-demo:latest
+    container_name: alert-demo
+    ports:
+      - "9000:9000"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/alert_db
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      - postgres
+      - rabbitmq
+
   postgres:
     image: postgres:16-alpine
     container_name: alert-postgres
