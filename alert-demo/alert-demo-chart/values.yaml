@@ -1,0 +1,62 @@
+# Default values for alert-demo-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: alert-demo   # Must match your docker build tag name
+  pullPolicy: Never           # CRITICAL: Tells K8s to use the local image on your PC
+  tag: "latest"
+# Configuration for the main application service (referenced in NOTES.txt)
+service:
+  type: LoadBalancer
+  port: 9000
+  targetPort: 9000
+
+autoscaling:
+  enabled: false
+
+ingress:
+  enabled: false
+
+httpRoute:
+  enabled: false
+
+# Configuration for RabbitMQ
+rabbitmq:
+  service:
+    type: LoadBalancer
+    ports:
+      amqp: 5672
+      management: 15672
+      targetPort: 15672
+
+# Configuration for Postgres
+postgres:
+  persistence:
+    size: 1Gi
+
+# Configuration for Grafana
+grafana:
+  service:
+    type: LoadBalancer
+    port: 3000
+
+# Configuration for Prometheus
+prometheus:
+  service:
+    type: LoadBalancer
+    port: 9000
+    targetPort: 9000
+
+
+
+serviceAccount:
+  create: true
+  name: ""
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
