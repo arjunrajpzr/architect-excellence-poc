@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -15,6 +16,7 @@ import com.bank.alert_demo.DeliveryStatus;
 import com.bank.alert_demo.entity.Alert;
 import com.bank.alert_demo.model.AlertEvent;
 import com.bank.alert_demo.repository.AlertRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 
 import jakarta.transaction.Transactional;
@@ -28,10 +30,24 @@ public class AlertConsumer {
     private AlertRepository alertRepository;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @RabbitListener(queues = "inbound_alerts", ackMode = "MANUAL")
     @Transactional
-    public void consumeAlert(AlertEvent event, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag){
+    public void consumeAlert(Message message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag){
+        AlertEvent event;
+        try {
+            event = objectMapper.readValue(message.getBody(), AlertEvent.class);
+        } catch (IOException e) {
+            log.error("Failed to parse message body: {}", new String(message.getBody()));
+            try {
+                channel.basicReject(tag, false);
+            } catch (IOException ioException) {
+                log.error("Failed to reject message", ioException);
+            }
+            return;
+        }
         log.info("Received Event: ID={}, Type={}", event.eventId(), event.alertType());
         try {
 

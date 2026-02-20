@@ -32,7 +32,7 @@ rabbitmq:
 # Configuration for Postgres
 postgres:
   persistence:
-    size: 1Gi
+    size: 100Mi
 
 # Configuration for Grafana
 grafana:
